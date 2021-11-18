@@ -5,7 +5,7 @@ mod token_text;
 
 pub(crate) mod grammar;
 
-use std::{cell::RefCell, rc::Rc};
+use std::{cell::RefCell, collections::VecDeque, rc::Rc};
 
 use crate::{lexer::Lexer, Error, Token, TokenKind};
 
@@ -72,7 +72,7 @@ pub(crate) use token_text::TokenText;
 #[derive(Debug)]
 pub struct Parser {
     /// Input tokens, including whitespace, in *reverse* order.
-    tokens: Vec<Token>,
+    tokens: VecDeque<Token>,
     /// The in-progress tree.
     builder: Rc<RefCell<SyntaxTreeBuilder>>,
     /// The list of syntax errors we've accumulated so far.
@@ -84,18 +84,17 @@ impl Parser {
     pub fn new(input: &str) -> Self {
         let lexer = Lexer::new(input);
 
-        let mut tokens = Vec::new();
+        let mut tokens = VecDeque::new();
         let mut errors = Vec::new();
 
         for s in lexer.tokens().to_owned() {
-            tokens.push(s);
+            tokens.push_back(s);
         }
 
         for e in lexer.errors().cloned() {
             errors.push(e);
         }
 
-        tokens.reverse();
         errors.reverse();
 
         Self {
@@ -159,7 +158,7 @@ impl Parser {
     fn eat(&mut self, kind: SyntaxKind) {
         let token = self
             .tokens
-            .pop()
+            .pop_front()
             .expect("Could not eat a token from the AST");
         self.builder.borrow_mut().token(kind, token.data());
     }
@@ -211,7 +210,7 @@ impl Parser {
     /// Consume a token from the lexer.
     pub(crate) fn pop(&mut self) -> Token {
         self.tokens
-            .pop()
+            .pop_front()
             .expect("Could not pop a token from the AST")
     }
 
@@ -236,19 +235,18 @@ impl Parser {
 
     /// Peek the next Token and return its TokenKind.
     pub(crate) fn peek(&self) -> Option<TokenKind> {
-        self.tokens.last().map(|token| token.kind())
+        self.tokens.front().map(|token| token.kind())
     }
 
     /// Peek the next Token and return it.
     pub(crate) fn peek_token(&self) -> Option<&Token> {
-        self.tokens.last()
+        self.tokens.front()
     }
 
     /// Peek Token `n` and return its TokenKind.
     pub(crate) fn peek_n(&self, n: usize) -> Option<TokenKind> {
         self.tokens
             .iter()
-            .rev()
             .filter(|token| !matches!(token.kind(), TokenKind::Whitespace | TokenKind::Comment))
             .nth(n - 1)
             .map(|token| token.kind())
@@ -256,14 +254,13 @@ impl Parser {
 
     /// Peek next Token's `data` property.
     pub(crate) fn peek_data(&self) -> Option<String> {
-        self.tokens.last().map(|token| token.data().to_string())
+        self.tokens.front().map(|token| token.data().to_string())
     }
 
     /// Peek `n` Token's `data` property.
     pub(crate) fn peek_data_n(&self, n: usize) -> Option<String> {
         self.tokens
             .iter()
-            .rev()
             .filter(|token| !matches!(token.kind(), TokenKind::Whitespace | TokenKind::Comment))
             .nth(n - 1)
             .map(|token| token.data().to_string())
