@@ -175,7 +175,7 @@ pub mod ast;
 mod error;
 mod parser;
 
-pub use crate::lexer::Lexer;
+pub use crate::lexer::{Lexer, LexerIterator};
 
 pub(crate) use crate::lexer::{Token, TokenKind};
 pub(crate) use crate::parser::{
