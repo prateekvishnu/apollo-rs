@@ -9,7 +9,7 @@ use crate::{lexer::cursor::Cursor, Error};
 pub use token::Token;
 pub use token_kind::TokenKind;
 /// Parses tokens into text.
-pub(crate) struct Lexer {
+pub struct Lexer {
     tokens: Vec<Token>,
     errors: Vec<Error>,
 }

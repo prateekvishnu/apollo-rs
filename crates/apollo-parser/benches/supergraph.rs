@@ -1,13 +1,14 @@
-use apollo_parser::ast;
+use apollo_parser::{ast, Lexer};
 use criterion::*;
 
-fn parse_query(query: &str) {
-    let parser = apollo_parser::Parser::new(query);
+fn parse_schema(schema: &str) {
+    let parser = apollo_parser::Parser::new(schema);
     let tree = parser.parse();
 
     if !tree.errors().is_empty() {
         panic!("error parsing query: {:?}", tree.errors());
     }
+
     let document = tree.document();
 
     for definition in document.definitions() {
@@ -27,11 +28,23 @@ fn parse_query(query: &str) {
     }
 }
 
-fn bench_parser_peek_n(c: &mut Criterion) {
-    let query = "query ExampleQuery($topProductsFirst: Int) {\n  me { \n    id\n  }\n  topProducts(first:  $topProductsFirst) {\n    name\n    price\n    inStock\n weight\n test test test test test test test test test test test test }\n}";
+fn bench_supergraph_parser(c: &mut Criterion) {
+    let schema = include_str!("../test_data/parser/ok/0032_supergraph.graphql");
 
-    c.bench_function("parser_peek_n", move |b| b.iter(|| parse_query(query)));
+    c.bench_function("supergraph_parser", move |b| {
+        b.iter(|| parse_schema(schema))
+    });
 }
 
-criterion_group!(benches, bench_parser_peek_n);
+fn bench_supergraph_lexer(c: &mut Criterion) {
+    let schema = include_str!("../test_data/parser/ok/0032_supergraph.graphql");
+
+    c.bench_function("supergraph_lexer", move |b| {
+        b.iter(|| {
+            let _ = Lexer::new(schema);
+        })
+    });
+}
+
+criterion_group!(benches, bench_supergraph_lexer, bench_supergraph_parser);
 criterion_main!(benches);
