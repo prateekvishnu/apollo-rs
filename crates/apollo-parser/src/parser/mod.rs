@@ -7,10 +7,7 @@ pub(crate) mod grammar;
 
 use std::{cell::RefCell, rc::Rc};
 
-use crate::{
-    lexer::{LexerIterator, LexerResult},
-    Error, Token, TokenKind,
-};
+use crate::{lexer::LexerIterator, Error, Token, TokenKind};
 
 pub use generated::syntax_kind::SyntaxKind;
 pub use language::{SyntaxElement, SyntaxNodeChildren, SyntaxToken};
@@ -207,8 +204,8 @@ impl<'a> Parser<'a> {
                 .next()
                 .expect("Could not pop a token from the AST")
             {
-                LexerResult::Error(e) => self.errors.push(e),
-                LexerResult::Token(token) => return token,
+                Err(e) => self.errors.push(e),
+                Ok(token) => return token,
             }
         }
     }
@@ -246,8 +243,8 @@ impl<'a> Parser<'a> {
                     .next()
                     .expect("Could not pop a token from the AST")
                 {
-                    LexerResult::Error(e) => self.errors.push(e),
-                    LexerResult::Token(token) => {
+                    Err(e) => self.errors.push(e),
+                    Ok(token) => {
                         self.current_token = Some(token);
                         break;
                     }
@@ -266,13 +263,10 @@ impl<'a> Parser<'a> {
         };
 
         let it = self.lexer.clone();
-        it.filter_map(|res| match res {
-            LexerResult::Error(_) => None,
-            LexerResult::Token(token) => Some(token),
-        })
-        .filter(|token| !matches!(token.kind(), TokenKind::Whitespace | TokenKind::Comment))
-        .nth(index)
-        .map(|token| token.kind())
+        it.filter_map(Result::ok)
+            .filter(|token| !matches!(token.kind(), TokenKind::Whitespace | TokenKind::Comment))
+            .nth(index)
+            .map(|token| token.kind())
     }
 
     /// Peek next Token's `data` property.
@@ -289,13 +283,10 @@ impl<'a> Parser<'a> {
         };
 
         let it = self.lexer.clone();
-        it.filter_map(|res| match res {
-            LexerResult::Error(_) => None,
-            LexerResult::Token(token) => Some(token),
-        })
-        .filter(|token| !matches!(token.kind(), TokenKind::Whitespace | TokenKind::Comment))
-        .nth(index)
-        .map(|token| token.data().to_string())
+        it.filter_map(Result::ok)
+            .filter(|token| !matches!(token.kind(), TokenKind::Whitespace | TokenKind::Comment))
+            .nth(index)
+            .map(|token| token.data().to_string())
     }
 }
 
