@@ -105,6 +105,29 @@ impl Parser {
         }
     }
 
+    // Manipulate tokens prior to parsing. Removing Comments and
+    // "compressing" Whitespaces.
+    // REMEMBER: tokens are in reverse order here...
+    pub fn compress(mut self) -> Self {
+        // Only do the work if there are no errors
+        if self.errors.is_empty() {
+            // 1. Remove all Comments
+            self.tokens.retain(|x| x.kind() != TokenKind::Comment);
+
+            // 2. Consolidate Whitespace
+            let mut tokens: Vec<Token> = vec![];
+            for elem in self.tokens {
+                if elem.kind() == TokenKind::Whitespace {
+                    tokens.push(Token::new(TokenKind::Whitespace, " ".to_string()));
+                } else {
+                    tokens.push(elem);
+                }
+            }
+            self.tokens = tokens;
+        }
+        self
+    }
+
     /// Parse the current tokens.
     pub fn parse(mut self) -> SyntaxTree {
         grammar::document::document(&mut self);

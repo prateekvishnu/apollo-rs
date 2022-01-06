@@ -2,7 +2,10 @@ use std::{fmt, slice::Iter};
 
 use rowan::GreenNodeBuilder;
 
-use crate::{ast::Document, Error, SyntaxElement, SyntaxKind};
+use crate::{
+    ast::{AstNode, Definition, Document},
+    Error, SyntaxElement, SyntaxKind,
+};
 
 use super::GraphQLLanguage;
 
@@ -40,6 +43,53 @@ use super::GraphQLLanguage;
 pub struct SyntaxTree {
     pub(crate) ast: rowan::SyntaxNode<GraphQLLanguage>,
     pub(crate) errors: Vec<crate::Error>,
+}
+
+//XXX Horrible, but can't figure out how to generate atm
+impl Definition {
+    pub fn format(&self) -> String {
+        fn print(mut s: String, element: SyntaxElement) -> String {
+            match element {
+                rowan::NodeOrToken::Node(node) => {
+                    for child in node.children_with_tokens() {
+                        s = print(s, child);
+                    }
+                    s
+                }
+                rowan::NodeOrToken::Token(token) => {
+                    s.push_str(token.text());
+                    s
+                }
+            }
+        }
+
+        let res = String::new();
+
+        print(res, self.syntax().clone().into())
+    }
+}
+impl Document {
+    pub fn format(&self) -> String {
+        fn print(mut s: String, element: SyntaxElement) -> String {
+            match element {
+                rowan::NodeOrToken::Node(node) => {
+                    for child in node.children_with_tokens() {
+                        s = print(s, child);
+                    }
+                    s
+                }
+
+                rowan::NodeOrToken::Token(token) => {
+                    s.push_str(token.text());
+                    s
+                }
+            }
+        }
+
+        let res = String::new();
+
+        print(res, self.syntax.clone().into())
+    }
 }
 
 impl SyntaxTree {
