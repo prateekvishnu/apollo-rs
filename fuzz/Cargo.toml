@@ -11,13 +11,10 @@ cargo-fuzz = true
 
 [dependencies]
 libfuzzer-sys = "0.4"
+apollo-smith = { path = "../crates/apollo-smith" }
 
 [dependencies.apollo-parser]
 path = "../crates/apollo-parser"
-
-# Prevent this from interfering with workspaces
-[workspace]
-members = ["."]
 
 [[bin]]
 name = "lexer"

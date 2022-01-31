@@ -1,0 +1,69 @@
+use std::collections::HashSet;
+
+use apollo_encoder::ObjectDef;
+
+use crate::{description::Description, field::FieldDef, name::Name, DocumentBuilder};
+
+pub struct ObjectTypeDef {
+    pub(crate) description: Option<Description>,
+    pub(crate) name: Name,
+    pub(crate) interface_impls: HashSet<Name>,
+    // directives: Vec<Directive>,
+    pub(crate) fields_def: Vec<FieldDef>,
+}
+
+impl From<ObjectTypeDef> for ObjectDef {
+    fn from(val: ObjectTypeDef) -> Self {
+        let mut object_def = ObjectDef::new(val.name.into());
+        val.interface_impls
+            .into_iter()
+            .for_each(|itf| object_def.interface(itf.into()));
+        val.fields_def
+            .into_iter()
+            .for_each(|fd| object_def.field(fd.into()));
+        object_def.description(val.description.map(String::from));
+
+        object_def
+    }
+}
+
+impl<'a> DocumentBuilder<'a> {
+    pub fn object_type_definition(&mut self) -> ObjectTypeDef {
+        let description = self
+            .u
+            .arbitrary()
+            .unwrap_or(false)
+            .then(|| self.description());
+        let name = self.type_name();
+
+        // ---- Interface
+        let interface_impls = self.interface_implements();
+        let implements_fields: Vec<FieldDef> = interface_impls
+            .iter()
+            .flat_map(|itf_name| {
+                self.interface_type_defs
+                    .iter()
+                    .find(|itf| &itf.name == itf_name)
+                    .expect("cannot find the corresponding interface")
+                    .fields_def
+                    .clone()
+            })
+            .collect();
+
+        let mut fields_def = self.fields_definition(
+            &implements_fields
+                .iter()
+                .map(|f| &f.name)
+                .collect::<Vec<&Name>>(),
+        );
+        // Add fields coming from interfaces
+        fields_def.extend(implements_fields);
+
+        ObjectTypeDef {
+            description,
+            interface_impls,
+            name,
+            fields_def,
+        }
+    }
+}

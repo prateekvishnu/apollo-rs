@@ -101,7 +101,7 @@ impl fmt::Display for ObjectDef {
         for (i, interface) in self.interfaces.iter().enumerate() {
             match i {
                 0 => write!(f, " implements {}", interface)?,
-                _ => write!(f, "& {}", interface)?,
+                _ => write!(f, " & {}", interface)?,
             }
         }
         write!(f, " {{")?;
