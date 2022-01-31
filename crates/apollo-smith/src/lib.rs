@@ -16,6 +16,7 @@ use std::collections::HashSet;
 
 use apollo_encoder::Schema;
 use arbitrary::Unstructured;
+use enum_::EnumTypeDef;
 use interface::InterfaceTypeDef;
 use object::ObjectTypeDef;
 use rand::{thread_rng, Rng};
@@ -26,16 +27,18 @@ pub(crate) mod document;
 pub(crate) mod field;
 // pub(crate) mod grammar;
 pub(crate) mod directive;
+pub(crate) mod enum_;
+pub(crate) mod input_value;
 pub(crate) mod interface;
 pub(crate) mod name;
 pub(crate) mod object;
 pub(crate) mod ty;
-pub(crate) mod value;
 
 pub struct DocumentBuilder<'a> {
     pub(crate) u: Unstructured<'a>,
     pub(crate) object_type_defs: Vec<ObjectTypeDef>,
     pub(crate) interface_type_defs: Vec<InterfaceTypeDef>,
+    pub(crate) enum_type_defs: Vec<EnumTypeDef>,
     pub(crate) type_names: HashSet<String>,
     pub(crate) nested_level: u8,
     pub(crate) field_names: HashSet<String>,
@@ -47,6 +50,7 @@ impl<'a> DocumentBuilder<'a> {
             u: Unstructured::new(btes),
             object_type_defs: Vec::new(),
             interface_type_defs: Vec::new(),
+            enum_type_defs: Vec::new(),
             type_names: HashSet::new(),
             nested_level: 0,
             field_names: HashSet::new(),

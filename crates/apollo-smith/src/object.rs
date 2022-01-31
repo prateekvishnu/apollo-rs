@@ -2,13 +2,15 @@ use std::collections::HashSet;
 
 use apollo_encoder::ObjectDef;
 
-use crate::{description::Description, field::FieldDef, name::Name, DocumentBuilder};
+use crate::{
+    description::Description, directive::Directive, field::FieldDef, name::Name, DocumentBuilder,
+};
 
 pub struct ObjectTypeDef {
     pub(crate) description: Option<Description>,
     pub(crate) name: Name,
     pub(crate) interface_impls: HashSet<Name>,
-    // directives: Vec<Directive>,
+    directives: Vec<Directive>,
     pub(crate) fields_def: Vec<FieldDef>,
 }
 
@@ -61,6 +63,7 @@ impl<'a> DocumentBuilder<'a> {
 
         ObjectTypeDef {
             description,
+            directives: self.directives(),
             interface_impls,
             name,
             fields_def,
