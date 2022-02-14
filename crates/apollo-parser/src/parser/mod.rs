@@ -157,7 +157,7 @@ impl Parser {
     }
 
     /// Consume ignored tokens and add them to the AST.
-    fn bump_ignored(&mut self) {
+    pub(crate) fn bump_ignored(&mut self) {
         while let Some(TokenKind::Comment | TokenKind::Whitespace | TokenKind::Comma) = self.peek()
         {
             if let Some(TokenKind::Comment) = self.peek() {
@@ -265,6 +265,15 @@ impl Parser {
     /// Peek the next Token and return it.
     pub(crate) fn peek_token(&self) -> Option<&Token> {
         self.tokens.last()
+    }
+
+    /// Peek Token `n` and return it.
+    pub(crate) fn peek_token_n(&self, n: usize) -> Option<&Token> {
+        self.tokens
+            .iter()
+            .rev()
+            .filter(|token| !matches!(token.kind(), TokenKind::Whitespace | TokenKind::Comment))
+            .nth(n - 1)
     }
 
     /// Peek Token `n` and return its TokenKind.

@@ -42,10 +42,10 @@ pub(crate) fn root_operation_type_definition(p: &mut Parser, is_operation_type: 
 ///    SelectionSet
 
 pub(crate) fn operation_definition(p: &mut Parser) {
-    let _g = p.start_node(SyntaxKind::OPERATION_DEFINITION);
-
     match p.peek() {
         Some(TokenKind::Name) => {
+            let _g = p.start_node(SyntaxKind::OPERATION_DEFINITION);
+
             operation_type(p);
 
             if let Some(TokenKind::Name) = p.peek() {
@@ -64,8 +64,12 @@ pub(crate) fn operation_definition(p: &mut Parser) {
                 selection::selection_set(p)
             }
         }
-        Some(T!['{']) => selection::selection_set(p),
-        _ => p.err("expected an Operation Type or a Selection Set"),
+        Some(T!['{']) => {
+            let _g = p.start_node(SyntaxKind::OPERATION_DEFINITION);
+
+            selection::selection_set(p)
+        }
+        _ => p.err_and_pop("expected an Operation Type or a Selection Set"),
     }
 }
 
@@ -82,5 +86,22 @@ pub(crate) fn operation_type(p: &mut Parser) {
             "mutation" => p.bump(SyntaxKind::mutation_KW),
             _ => p.err("expected either a 'mutation', a 'query', or a 'subscription'"),
         }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::Parser;
+
+    // NOTE @lrlna: related PR to the spec to avoid this issue:
+    // https://github.com/graphql/graphql-spec/pull/892
+    #[test]
+    fn it_continues_parsing_when_operation_definition_starts_with_description() {
+        let input = "\"description\"{}";
+        let parser = Parser::new(input);
+        let ast = parser.parse();
+
+        assert_eq!(ast.errors().len(), 2);
+        assert_eq!(ast.document().definitions().into_iter().count(), 1);
     }
 }

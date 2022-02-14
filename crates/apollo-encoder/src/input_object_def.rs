@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::{InputField, StringValue};
+use crate::{Directive, InputField, StringValue};
 
 /// Input objects are composite types used as inputs into queries defined as a list of named input values..
 ///
@@ -9,13 +9,9 @@ use crate::{InputField, StringValue};
 ///
 /// Detailed documentation can be found in [GraphQL spec](https://spec.graphql.org/October2021/#sec-Input-Objects).
 ///
-/// **Note**: At the moment InputObjectTypeDefinition differs slightly from the
-/// spec. Instead of accepting InputValues as `field` parameter, we accept
-/// InputField.
-///
 /// ### Example
 /// ```rust
-/// use apollo_encoder::{Type_, InputField, InputObjectDef};
+/// use apollo_encoder::{Type_, InputField, InputObjectDefinition};
 /// use indoc::indoc;
 ///
 /// let ty_1 = Type_::NamedType {
@@ -31,7 +27,7 @@ use crate::{InputField, StringValue};
 /// let mut field_2 = InputField::new("playSpot".to_string(), ty_3);
 /// field_2.description(Some("Best playime spots, e.g. tree, bed.".to_string()));
 ///
-/// let mut input_def = InputObjectDef::new("PlayTime".to_string());
+/// let mut input_def = InputObjectDefinition::new("PlayTime".to_string());
 /// input_def.field(field);
 /// input_def.field(field_2);
 /// input_def.description(Some("Cat playtime input".to_string()));
@@ -49,23 +45,33 @@ use crate::{InputField, StringValue};
 /// );
 /// ```
 #[derive(Debug, Clone)]
-pub struct InputObjectDef {
+pub struct InputObjectDefinition {
     // Name must return a String.
     name: String,
     // Description may return a String or null.
     description: StringValue,
     // A vector of fields
     fields: Vec<InputField>,
+    /// Contains all directives.
+    directives: Vec<Directive>,
+    extend: bool,
 }
 
-impl InputObjectDef {
+impl InputObjectDefinition {
     /// Create a new instance of ObjectDef with a name.
     pub fn new(name: String) -> Self {
         Self {
             name,
             description: StringValue::Top { source: None },
             fields: Vec::new(),
+            directives: Vec::new(),
+            extend: false,
         }
+    }
+
+    /// Set the input object type as an extension
+    pub fn extend(&mut self) {
+        self.extend = true;
     }
 
     /// Set the InputObjectDef's description field.
@@ -79,13 +85,28 @@ impl InputObjectDef {
     pub fn field(&mut self, field: InputField) {
         self.fields.push(field)
     }
+
+    /// Add a directive.
+    pub fn directive(&mut self, directive: Directive) {
+        self.directives.push(directive)
+    }
 }
 
-impl fmt::Display for InputObjectDef {
+impl fmt::Display for InputObjectDefinition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.description)?;
+        if self.extend {
+            write!(f, "extend ")?;
+        } else {
+            // No description when it's a extension
+            write!(f, "{}", self.description)?;
+        }
 
-        write!(f, "input {} {{", &self.name)?;
+        write!(f, "input {}", &self.name)?;
+
+        for directive in &self.directives {
+            write!(f, " {}", directive)?;
+        }
+        write!(f, " {{")?;
 
         for field in &self.fields {
             write!(f, "\n{}", field)?;
@@ -97,7 +118,7 @@ impl fmt::Display for InputObjectDef {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{InputField, Type_};
+    use crate::{Argument, InputField, Type_, Value};
     use indoc::indoc;
     use pretty_assertions::assert_eq;
 
@@ -115,15 +136,21 @@ mod tests {
         };
         let mut field_2 = InputField::new("playSpot".to_string(), ty_3);
         field_2.description(Some("Best playime spots, e.g. tree, bed.".to_string()));
+        let mut directive = Directive::new(String::from("testDirective"));
+        directive.arg(Argument::new(
+            String::from("first"),
+            Value::String("one".to_string()),
+        ));
 
-        let mut input_def = InputObjectDef::new("PlayTime".to_string());
+        let mut input_def = InputObjectDefinition::new("PlayTime".to_string());
         input_def.field(field);
         input_def.field(field_2);
+        input_def.directive(directive);
 
         assert_eq!(
             input_def.to_string(),
             indoc! { r#"
-                input PlayTime {
+                input PlayTime @testDirective(first: "one") {
                   toys: [DanglerPoleToys] = "Cat Dangler Pole Bird"
                   "Best playime spots, e.g. tree, bed."
                   playSpot: FavouriteSpots
@@ -147,7 +174,7 @@ mod tests {
         let mut field_2 = InputField::new("playSpot".to_string(), ty_3);
         field_2.description(Some("Best playime spots, e.g. tree, bed.".to_string()));
 
-        let mut input_def = InputObjectDef::new("PlayTime".to_string());
+        let mut input_def = InputObjectDefinition::new("PlayTime".to_string());
         input_def.field(field);
         input_def.field(field_2);
         input_def.description(Some("Cat playtime input".to_string()));
@@ -157,6 +184,39 @@ mod tests {
             indoc! { r#"
                 "Cat playtime input"
                 input PlayTime {
+                  toys: [DanglerPoleToys] = "Cat Dangler Pole Bird"
+                  "Best playime spots, e.g. tree, bed."
+                  playSpot: FavouriteSpots
+                }
+            "#}
+        );
+    }
+
+    #[test]
+    fn it_encodes_input_object_extension() {
+        let ty_1 = Type_::NamedType {
+            name: "DanglerPoleToys".to_string(),
+        };
+
+        let ty_2 = Type_::List { ty: Box::new(ty_1) };
+        let mut field = InputField::new("toys".to_string(), ty_2);
+        field.default(Some("\"Cat Dangler Pole Bird\"".to_string()));
+        let ty_3 = Type_::NamedType {
+            name: "FavouriteSpots".to_string(),
+        };
+        let mut field_2 = InputField::new("playSpot".to_string(), ty_3);
+        field_2.description(Some("Best playime spots, e.g. tree, bed.".to_string()));
+
+        let mut input_def = InputObjectDefinition::new("PlayTime".to_string());
+        input_def.field(field);
+        input_def.field(field_2);
+        input_def.description(Some("Cat playtime input".to_string()));
+        input_def.extend();
+
+        assert_eq!(
+            input_def.to_string(),
+            indoc! { r#"
+                extend input PlayTime {
                   toys: [DanglerPoleToys] = "Cat Dangler Pole Bird"
                   "Best playime spots, e.g. tree, bed."
                   playSpot: FavouriteSpots
