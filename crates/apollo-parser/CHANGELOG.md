@@ -17,6 +17,126 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## Maintenance
 
 ## Documentation -->
+# [0.2.4](https://crates.io/crates/apollo-parser/0.2.4) - 2021-03-07
+## Fixes
+- **correctly parse Arguments Definition - [bnjjj], [pull/187] closes [issue/186]**
+
+  `apollo-parser` was creating ARGUMENTS instead of ARGUMENTS_DEFINITION nodes
+  when parsing Arguments Definitions. This change fixes the incorrect parsing
+  and allows to iterate over arguments definitions returned by the AST.
+
+  [bnjjj]: https://github.com/bnjjj
+  [pull/187]: https://github.com/apollographql/apollo-rs/pull/187
+  [issue/186]: https://github.com/apollographql/apollo-rs/issues/186
+
+- **Add STRING_VALUE node to DESCRIPTION - [bnjjj], [pull/188] closes [issue/185]**
+
+  DESCRIPTION nodes are composed of STRING_VALUE nodes. The description string
+  was previously simply added to the DESCRIPTION node which was not spec
+  compliant.
+
+  [bnjjj]: https://github.com/bnjjj
+  [pull/188]: https://github.com/apollographql/apollo-rs/pull/188
+  [issue/185]: https://github.com/apollographql/apollo-rs/issues/185
+
+- **Schema Definition has a description - [bnjjj], [pull/188] closes [issue/185]**
+
+  `apollo-parser` was parsing descriptions in Schema Definitions, but the
+  graphql ungrammar did not account for a description node. This updates the
+  ungrammar, and provides an accessor method to Schema Definition's description.
+
+  [bnjjj]: https://github.com/bnjjj
+  [pull/188]: https://github.com/apollographql/apollo-rs/pull/188
+  [issue/185]: https://github.com/apollographql/apollo-rs/issues/185
+
+- **Add `repeatable` keyword to GraphQL ungrammar - [bnjjj], [pull/189]**
+
+  `repeatable` keyword was not able to be accessed programmatically from the
+  parsed AST for Directive Definitions, this is now fixed.
+
+  [bnjjj]: https://github.com/bnjjj
+  [pull/189]: https://github.com/apollographql/apollo-rs/pull/189
+
+# [0.2.3](https://crates.io/crates/apollo-parser/0.2.3) - 2021-02-17
+## Features
+- **expose Lexer as a pub struct - [bnjjj], [pull/168]**
+
+  The `Lexer` in `apollo-parser` is now a publicly available interface.
+
+  ```rust
+  use apollo_parser::Lexer;
+
+  let query = "
+  {
+      animal
+      ...snackSelection
+      ... on Pet {
+        playmates {
+          count
+        }
+      }
+  }
+  ";
+  let lexer = Lexer::new(query);
+  assert_eq!(lexer.errors().len(), 0);
+
+  let tokens = lexer.tokens();
+  ```
+
+  [bnjjj]: https://github.com/bnjjj
+  [pull/168]: https://github.com/apollographql/apollo-rs/pull/168
+
+## Fixes
+- **add a getter for Directives in Variable Definitions - [lrlna], [pull/172]**
+
+  While the parser was correctly parsing and accounting for directives in a
+  variable definition, the getter for Directives in VariableDefinition type in the
+  AST was missing. This commit makes an addition to the graphql ungrammar, and by
+  extension the generated AST nodes API.
+
+  [lrlna]: https://github.com/lrlna
+  [pull/172]: https://github.com/apollographql/apollo-rs/pull/172
+
+# [0.2.2](https://crates.io/crates/apollo-parser/0.2.2) - 2021-02-11
+## Fixes
+- **create an error when description preceeds operation definition and proceed parsing - [MidasLamb], [pull/158]/ [lrlna], [pull/160]**
+
+  According to the spec Operation Definitions don't currently allow for
+  descriptions.
+
+  ```graphql
+  "this description is not allowed"
+  {
+    name
+    age
+  }
+  ```
+
+  When a description was added before an operation, the parser
+  would continuously try to register the error without removing it from the list
+  of valid tokens. This fix removes the incorrect token, and continuous parsing
+  an OperationDefinition.
+
+  [MidasLamb]: https://github.com/MidasLamb
+  [lrlna]: https://github.com/lrlna
+  [pull/158]: https://github.com/apollographql/apollo-rs/pull/158
+  [pull/160]: https://github.com/apollographql/apollo-rs/pull/160
+
+- **Correctly parse an Inline Fragment when type condition is absent - [bnjjj], [pull/164]**
+
+  The following inline fragment would previously be incorrectly parsed as a FragmentSpread when in reality it's an Inline Fragment:
+  ```graphql
+  query HeroForEpisode {
+    ... @tag(name: "team-customers") { # an inline fragment
+      primaryFunction
+    }
+  }
+  ```
+
+  This has now been fixed.
+
+  [bnjjj]: https://github.com/bnjjj
+  [pull/164]: https://github.com/apollographql/apollo-rs/pull/164
 # [0.2.1](https://crates.io/crates/apollo-parser/0.2.1) - 2021-01-26
 ## Fixes
 - **fix(apollo-parser): add ignored tokens to TYPE nodes in correct place - [lrlna], [issue/143] [pull/153]**

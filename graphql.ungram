@@ -127,7 +127,7 @@ VariableDefinitions =
   '(' VariableDefinition* ')'
 
 VariableDefinition =
-  Variable ':' Type DefaultValue?
+  Variable ':' Type DefaultValue? Directives?
 
 Variable =
   '$' Name
@@ -157,7 +157,7 @@ Directive =
   '@' Name Arguments?
 
 SchemaDefinition =
-  'schema' Directives? '{' RootOperationTypeDefinition* '}'
+  Description? 'schema' Directives? '{' RootOperationTypeDefinition* '}'
 
 SchemaExtension =
   'extend' 'schema' Directives? '{' RootOperationTypeDefinition* '}'
@@ -256,7 +256,7 @@ InputObjectTypeExtension =
   | 'extend' 'input' Name Directives?
 
 DirectiveDefinition =
-  Description? 'directive' '@' Name ArgumentsDefinition? 'on' DirectiveLocations
+  Description? 'directive' '@' Name ArgumentsDefinition? 'repeatable'? 'on' DirectiveLocations
 
 // In the spec, DirectiveLocations is defined as an enum of:
 // DirectiveLocations
