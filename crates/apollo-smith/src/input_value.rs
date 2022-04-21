@@ -157,7 +157,7 @@ impl From<InputValueDef> for apollo_encoder::InputField {
         let mut new_input_val = Self::new(input_val.name.into(), input_val.ty.into());
         new_input_val.description(input_val.description.map(String::from));
         if let Some(default) = input_val.default_value {
-            new_input_val.default(default.into())
+            new_input_val.default_value(default.into())
         }
         input_val
             .directives
