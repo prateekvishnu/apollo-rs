@@ -13,26 +13,72 @@ pub enum ApolloDiagnostic {
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum ErrorDiagnostic {
-    MissingIdent(String),
-    SingleRootField(String),
-    UniqueOperationDefinition {
+    BuiltInScalarDefinition {
         message: String,
-        operation: String,
+        scalar: String,
     },
-    UndefinedVariable {
+    MissingIdent(String),
+    MissingField {
         message: String,
-        variable: String,
+        field: String,
+        current_definition: String,
+        super_definition: String,
+    },
+    QueryRootOperationType(String),
+    RecursiveDefinition {
+        message: String,
+        definition: String,
+    },
+    SingleRootField(String),
+    ScalarSpecificationURL {
+        message: String,
+        scalar: String,
     },
     SyntaxError {
         message: String,
         data: String,
         index: usize,
     },
+    TransitiveImplementedInterfaces {
+        message: String,
+        interface: String,
+        missing_implemented_interface: String,
+    },
+    UniqueDefinition {
+        message: String,
+        definition: String,
+    },
+    UnsupportedOperation {
+        message: String,
+        operation: Option<String>,
+    },
+    UniqueOperationDefinition {
+        message: String,
+        operation: String,
+    },
+    UniqueRootOperationType {
+        message: String,
+        named_type: String,
+        operation_type: String,
+    },
+    UniqueValue {
+        message: String,
+        value: String,
+    },
+    UndefinedDefinition {
+        message: String,
+        missing_definition: String,
+    },
+    UndefinedVariable {
+        message: String,
+        variable: String,
+    },
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub enum WarningDiagnostic {
     UnusedVariable { message: String, variable: String },
+    CapitalizedValue { message: String, value: String },
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]

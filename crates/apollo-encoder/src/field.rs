@@ -1,6 +1,9 @@
 use std::fmt;
 
-use crate::{Argument, Directive, InputValueDefinition, SelectionSet, StringValue, Type_};
+use crate::{
+    Argument, ArgumentsDefinition, Directive, InputValueDefinition, SelectionSet, StringValue,
+    Type_,
+};
 /// The FieldDefinition type represents each field definition in an Object
 /// definition or Interface type definition.
 ///
@@ -37,9 +40,9 @@ pub struct FieldDefinition {
     // Name must return a String.
     name: String,
     // Description may return a String.
-    description: StringValue,
+    description: Option<StringValue>,
     // Args returns a List of __InputValue representing the arguments this field accepts.
-    args: Vec<InputValueDefinition>,
+    args: ArgumentsDefinition,
     // Type must return a __Type that represents the type of value returned by this field.
     type_: Type_,
     /// Contains all directives.
@@ -50,24 +53,24 @@ impl FieldDefinition {
     /// Create a new instance of Field.
     pub fn new(name: String, type_: Type_) -> Self {
         Self {
-            description: StringValue::Field { source: None },
+            description: None,
             name,
             type_,
-            args: Vec::new(),
+            args: ArgumentsDefinition::new(),
             directives: Vec::new(),
         }
     }
 
     /// Set the Field's description.
-    pub fn description(&mut self, description: Option<String>) {
-        self.description = StringValue::Field {
+    pub fn description(&mut self, description: String) {
+        self.description = Some(StringValue::Field {
             source: description,
-        };
+        });
     }
 
     /// Set the Field's arguments.
     pub fn arg(&mut self, arg: InputValueDefinition) {
-        self.args.push(arg);
+        self.args.input_value(arg);
     }
 
     /// Add a directive.
@@ -78,17 +81,13 @@ impl FieldDefinition {
 
 impl fmt::Display for FieldDefinition {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.description)?;
+        if let Some(description) = &self.description {
+            write!(f, "{}", description)?;
+        }
         write!(f, "  {}", self.name)?;
 
-        if !self.args.is_empty() {
-            for (i, arg) in self.args.iter().enumerate() {
-                match i {
-                    0 => write!(f, "({}", arg)?,
-                    _ => write!(f, ", {}", arg)?,
-                }
-            }
-            write!(f, ")")?;
+        if !self.args.input_values.is_empty() {
+            write!(f, "{}", self.args)?;
         }
 
         write!(f, ": {}", self.type_)?;
@@ -238,7 +237,7 @@ mod tests {
         let mut field = FieldDefinition::new("cat".to_string(), ty_2);
         let mut directive = Directive::new(String::from("testDirective"));
         directive.arg(Argument::new(String::from("first"), Value::Int(1)));
-        field.description(Some("Very good cats".to_string()));
+        field.description("Very good cats".to_string());
         field.directive(directive);
 
         assert_eq!(
@@ -258,7 +257,7 @@ mod tests {
         let ty_3 = Type_::List { ty: Box::new(ty_2) };
         let ty_4 = Type_::NonNull { ty: Box::new(ty_3) };
         let mut field = FieldDefinition::new("spaceCat".to_string(), ty_4);
-        field.description(Some("Very good space cats".to_string()));
+        field.description("Very good space cats".to_string());
 
         assert_eq!(
             field.to_string(),
@@ -268,7 +267,7 @@ mod tests {
     }
 
     #[test]
-    fn it_encodes_fields_with_valueuments() {
+    fn it_encodes_fields_with_value_arguments() {
         let ty_1 = Type_::NamedType {
             name: "SpaceProgram".to_string(),
         };
@@ -276,8 +275,8 @@ mod tests {
         let ty_2 = Type_::NonNull { ty: Box::new(ty_1) };
         let ty_3 = Type_::List { ty: Box::new(ty_2) };
         let ty_4 = Type_::NonNull { ty: Box::new(ty_3) };
-        let mut field = FieldDefinition::new("spaceCat".to_string(), ty_4);
-        field.description(Some("Very good space cats".to_string()));
+        let mut field_definition = FieldDefinition::new("spaceCat".to_string(), ty_4);
+        field_definition.description("Very good space cats".to_string());
 
         let value_1 = Type_::NamedType {
             name: "SpaceProgram".to_string(),
@@ -293,12 +292,49 @@ mod tests {
             Value::String(String::from("Cats are no longer sent to space.")),
         ));
         arg.directive(deprecated_directive);
-        field.arg(arg);
+        field_definition.arg(arg);
 
         assert_eq!(
-            field.to_string(),
+            field_definition.to_string(),
             r#"  "Very good space cats"
   spaceCat(cat: [SpaceProgram] @deprecated(reason: "Cats are no longer sent to space.")): [SpaceProgram!]!"#
+        );
+    }
+
+    #[test]
+    fn it_encodes_fields_with_argument_descriptions() {
+        let ty = Type_::NamedType {
+            name: "Cat".to_string(),
+        };
+
+        let mut field_definition = FieldDefinition::new("spaceCat".to_string(), ty);
+
+        let value = Type_::NamedType {
+            name: "Treat".to_string(),
+        };
+
+        let mut arg = InputValueDefinition::new("treat".to_string(), value);
+        arg.description("The type of treats given in space".to_string());
+        field_definition.arg(arg);
+
+        let value = Type_::NamedType {
+            name: "Int".to_string(),
+        };
+
+        let mut arg = InputValueDefinition::new("age".to_string(), value);
+        arg.description("Optimal age of a \"space\" cat".to_string());
+        field_definition.arg(arg);
+
+        assert_eq!(
+            field_definition.to_string(),
+            r#"  spaceCat(
+    "The type of treats given in space"
+    treat: Treat,
+    """
+    Optimal age of a "space" cat
+    """
+    age: Int
+  ): Cat"#
         );
     }
 }

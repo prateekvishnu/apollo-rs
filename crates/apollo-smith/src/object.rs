@@ -8,7 +8,7 @@ use crate::{
     directive::{Directive, DirectiveLocation},
     field::FieldDef,
     name::Name,
-    DocumentBuilder,
+    DocumentBuilder, StackedEntity,
 };
 
 /// Object types represent concrete instantiations of sets of fields.
@@ -33,13 +33,16 @@ pub struct ObjectTypeDef {
 impl From<ObjectTypeDef> for ObjectDefinition {
     fn from(val: ObjectTypeDef) -> Self {
         let mut object_def = ObjectDefinition::new(val.name.into());
+        if let Some(description) = val.description {
+            object_def.description(description.into())
+        }
         val.implements_interfaces
             .into_iter()
             .for_each(|itf| object_def.interface(itf.into()));
         val.fields_def
             .into_iter()
             .for_each(|fd| object_def.field(fd.into()));
-        object_def.description(val.description.map(String::from));
+
         val.directives
             .into_iter()
             .for_each(|(_, directive)| object_def.directive(directive.into()));
@@ -183,5 +186,15 @@ impl<'a> DocumentBuilder<'a> {
             fields_def,
             extend,
         })
+    }
+}
+
+impl StackedEntity for ObjectTypeDef {
+    fn name(&self) -> &Name {
+        &self.name
+    }
+
+    fn fields_def(&self) -> &[FieldDef] {
+        &self.fields_def
     }
 }

@@ -207,7 +207,7 @@ enum Test @dir__one(int_value: -10) {
     #[allow(clippy::float_cmp)]
     fn it_returns_f64_for_float_values() {
         let schema = r#"
-enum Test @dir__one(float_value: -1.123E4) { 
+enum Test @dir__one(float_value: -1.123E4) {
   INVENTORY
 } "#;
         let parser = Parser::new(schema);
@@ -235,7 +235,7 @@ enum Test @dir__one(float_value: -1.123E4) {
     #[test]
     fn it_returns_bool_for_boolean_values() {
         let schema = r#"
-enum Test @dir__one(bool_value: false) { 
+enum Test @dir__one(bool_value: false) {
   INVENTORY
 } "#;
         let parser = Parser::new(schema);
@@ -293,5 +293,65 @@ query GraphQuery($graph_id: ID!, $variant: String) {
                 );
             }
         }
+    }
+
+    #[test]
+    fn it_parse_mutation_with_escaped_char() {
+        let input = r#"mutation {
+            createStore(draft: {
+              name: [{ locale: "en", value: "\"my store\"" }]
+            }) {
+              name(locale: "en")
+            }
+          }"#;
+        let parser = Parser::new(input);
+        let ast = parser.parse();
+
+        assert!(ast.errors().next().is_none());
+    }
+
+    #[test]
+    fn it_parse_mutation_without_escaped_char() {
+        let input = r#"mutation {
+            createStore(draft: {
+              name: [{ locale: "en", value: "my store" }]
+            }) {
+              name(locale: "en")
+            }
+          }"#;
+        let parser = Parser::new(input);
+        let ast = parser.parse();
+
+        assert!(ast.errors().next().is_none());
+    }
+
+    #[test]
+    fn it_parse_mutation_without_escaped_char_with_error() {
+        let input = r#"mutation {
+            createStore(draft: {
+              name: [{ locale: "en", value: "\"my store" }]
+            }) {
+              name(locale: "en")
+            }
+          }"#;
+        let parser = Parser::new(input);
+        let ast = parser.parse();
+
+        assert!(ast.errors().next().is_none());
+    }
+
+    #[test]
+    fn it_parse_mutation_with_escaped_chars_and_without() {
+        let input = r#"mutation {
+            createStore(draft: {
+              name: [{ locale: "en", value: "my \a store" }]
+            }) {
+              name(locale: "en")
+            }
+          }"#;
+        let parser = Parser::new(input);
+        let ast = parser.parse();
+
+        assert!(ast.errors().next().is_some());
     }
 }

@@ -8,7 +8,7 @@ use crate::{
     directive::{Directive, DirectiveLocation},
     field::FieldDef,
     name::Name,
-    DocumentBuilder,
+    DocumentBuilder, StackedEntity,
 };
 
 /// InterfaceTypeDef is an abstract type where there are common fields declared.
@@ -34,7 +34,9 @@ pub struct InterfaceTypeDef {
 impl From<InterfaceTypeDef> for InterfaceDefinition {
     fn from(itf: InterfaceTypeDef) -> Self {
         let mut itf_def = InterfaceDefinition::new(itf.name.into());
-        itf_def.description(itf.description.map(String::from));
+        if let Some(description) = itf.description {
+            itf_def.description(description.into())
+        }
         itf.fields_def
             .into_iter()
             .for_each(|f| itf_def.field(f.into()));
@@ -174,5 +176,15 @@ impl<'a> DocumentBuilder<'a> {
         }
 
         Ok(interface_impls)
+    }
+}
+
+impl StackedEntity for InterfaceTypeDef {
+    fn name(&self) -> &Name {
+        &self.name
+    }
+
+    fn fields_def(&self) -> &[FieldDef] {
+        &self.fields_def
     }
 }

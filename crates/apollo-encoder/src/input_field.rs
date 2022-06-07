@@ -17,7 +17,7 @@ use crate::{Directive, StringValue, Type_};
 /// };
 ///
 /// let mut field = InputField::new("cat".to_string(), ty_1);
-/// field.default(Some("\"Norwegian Forest\"".to_string()));
+/// field.default_value("\"Norwegian Forest\"".to_string());
 ///
 /// assert_eq!(field.to_string(), r#"  cat: CatBreed = "Norwegian Forest""#);
 /// ```
@@ -25,7 +25,7 @@ pub struct InputField {
     // Name must return a String.
     name: String,
     // Description may return a String.
-    description: StringValue,
+    description: Option<StringValue>,
     // Type must return a __Type that represents the type of value returned by this field.
     type_: Type_,
     // Default value for this input field.
@@ -38,7 +38,7 @@ impl InputField {
     /// Create a new instance of InputField.
     pub fn new(name: String, type_: Type_) -> Self {
         Self {
-            description: StringValue::Field { source: None },
+            description: None,
             name,
             type_,
             default_value: None,
@@ -47,15 +47,15 @@ impl InputField {
     }
 
     /// Set the InputField's description.
-    pub fn description(&mut self, description: Option<String>) {
-        self.description = StringValue::Field {
+    pub fn description(&mut self, description: String) {
+        self.description = Some(StringValue::Field {
             source: description,
-        };
+        });
     }
 
     /// Set the InputField's default value.
-    pub fn default(&mut self, default: Option<String>) {
-        self.default_value = default;
+    pub fn default_value(&mut self, default_value: String) {
+        self.default_value = Some(default_value);
     }
 
     /// Add a directive.
@@ -66,7 +66,9 @@ impl InputField {
 
 impl fmt::Display for InputField {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.description)?;
+        if let Some(description) = &self.description {
+            write!(f, "{}", description)?;
+        }
 
         write!(f, "  {}: {}", self.name, self.type_)?;
         if let Some(default) = &self.default_value {
@@ -95,7 +97,7 @@ mod tests {
         };
 
         let mut field = InputField::new("cat".to_string(), ty_1);
-        field.default(Some("\"Norwegian Forest\"".to_string()));
+        field.default_value("\"Norwegian Forest\"".to_string());
 
         assert_eq!(field.to_string(), r#"  cat: CatBreed = "Norwegian Forest""#);
     }
@@ -108,7 +110,7 @@ mod tests {
         directive.arg(Argument::new(String::from("first"), Value::Int(1)));
 
         let mut field = InputField::new("cat".to_string(), ty_1);
-        field.default(Some("\"Norwegian Forest\"".to_string()));
+        field.default_value("\"Norwegian Forest\"".to_string());
         field.directive(directive);
 
         assert_eq!(
