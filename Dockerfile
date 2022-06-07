@@ -12,7 +12,7 @@ RUN ${HOME}/.cargo/bin/cargo install -f cargo-fuzz
 ADD . /apollo-rs
 WORKDIR /apollo-rs
 
-RUN cd fuzz && ${HOME}/.cargo/bin/cargo fuzz build parser && ${HOME}/.cargo/bin/cargo fuzz build lexer
+RUN cd fuzz && ${HOME}/.cargo/bin/cargo fuzz build
 
 # Package Stage
 FROM ubuntu:20.04
