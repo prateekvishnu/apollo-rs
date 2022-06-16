@@ -72,6 +72,14 @@ impl ApolloCompiler {
     pub fn unions(&self) -> Arc<Vec<values::UnionDefinition>> {
         self.db.unions()
     }
+
+    pub fn directive_definitions(&self) -> Arc<Vec<values::DirectiveDefinition>> {
+        self.db.directive_definitions()
+    }
+
+    pub fn input_objects(&self) -> Arc<Vec<values::InputObjectDefinition>> {
+        self.db.input_objects()
+    }
 }
 
 #[cfg(test)]
@@ -308,5 +316,85 @@ type SearchQuery {
                 .collect();
             assert_eq!(fields, ["name", "age"])
         }
+    }
+
+    #[test]
+    fn it_accesses_directive_definitions() {
+        let input = r#"
+type Query {
+    literature: Book
+}
+
+directive @delegateField(name: String!) repeatable on OBJECT | INTERFACE
+
+type Book @delegateField(name: "pageCount") @delegateField(name: "author") {
+  id: ID!
+}
+"#;
+
+        let ctx = ApolloCompiler::new(input);
+        let errors = ctx.validate();
+
+        assert!(errors.is_empty());
+
+        let directives = ctx.directive_definitions();
+        let locations: Vec<String> = directives
+            .iter()
+            .filter_map(|dir| {
+                if dir.name() == "delegateField" {
+                    let locations: Vec<String> = dir
+                        .directive_locations()
+                        .iter()
+                        .map(|loc| loc.clone().into())
+                        .collect();
+                    Some(locations)
+                } else {
+                    None
+                }
+            })
+            .flatten()
+            .collect();
+
+        assert_eq!(locations, ["OBJECT", "INTERFACE"]);
+    }
+
+    #[test]
+    fn it_accesses_input_object_definitions() {
+        let input = r#"
+type Query {
+  point1: Point2D
+  point2: Point2D
+}
+
+input Point2D {
+  x: Float
+  y: Float
+}
+"#;
+
+        let ctx = ApolloCompiler::new(input);
+        let errors = ctx.validate();
+
+        assert!(errors.is_empty());
+
+        let input_objects = ctx.input_objects();
+        let fields: Vec<&str> = input_objects
+            .iter()
+            .filter_map(|input| {
+                if input.name() == "Point2D" {
+                    let fields: Vec<&str> = input
+                        .input_fields_definition()
+                        .iter()
+                        .map(|val| val.name())
+                        .collect();
+                    Some(fields)
+                } else {
+                    None
+                }
+            })
+            .flatten()
+            .collect();
+
+        assert_eq!(fields, ["x", "y"]);
     }
 }
