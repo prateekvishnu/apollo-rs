@@ -1,0 +1,42 @@
+[
+    UnsupportedOperation(
+        UnsupportedOperation {
+            ty: "Subscription",
+            src: "subscription messageSubscription {\n  newMessage {\n    body\n    sender\n  }\n}\n\nschema {\n  query: customPetQuery,\n}\n\ntype customPetQuery {\n  name: String,\n  newMessage: Message\n  age: Int\n}\n\ntype Message {\n  body: String\n  sender: String\n}",
+            operation: SourceSpan {
+                offset: SourceOffset(
+                    0,
+                ),
+                length: SourceOffset(
+                    77,
+                ),
+            },
+            schema: Some(
+                SourceSpan {
+                    offset: SourceOffset(
+                        77,
+                    ),
+                    length: SourceOffset(
+                        37,
+                    ),
+                },
+            ),
+            help: None,
+        },
+    ),
+    UndefinedField(
+        UndefinedField {
+            field: "newMessage",
+            src: "subscription messageSubscription {\n  newMessage {\n    body\n    sender\n  }\n}\n\nschema {\n  query: customPetQuery,\n}\n\ntype customPetQuery {\n  name: String,\n  newMessage: Message\n  age: Int\n}\n\ntype Message {\n  body: String\n  sender: String\n}",
+            definition: SourceSpan {
+                offset: SourceOffset(
+                    37,
+                ),
+                length: SourceOffset(
+                    37,
+                ),
+            },
+            help: "`newMessage` is not defined on the current Subscription root operation type.",
+        },
+    ),
+]

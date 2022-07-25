@@ -1,0 +1,28 @@
+[
+    UniqueDefinition(
+        UniqueDefinition {
+            name: "Query",
+            ty: "object type",
+            src: "type Query {\n  name: String\n}\n\ntype Query {\n  name: String\n}",
+            original_definition: SourceSpan {
+                offset: SourceOffset(
+                    0,
+                ),
+                length: SourceOffset(
+                    31,
+                ),
+            },
+            redefined_definition: SourceSpan {
+                offset: SourceOffset(
+                    31,
+                ),
+                length: SourceOffset(
+                    29,
+                ),
+            },
+            help: Some(
+                "`Query` must only be defined once in this document.",
+            ),
+        },
+    ),
+]

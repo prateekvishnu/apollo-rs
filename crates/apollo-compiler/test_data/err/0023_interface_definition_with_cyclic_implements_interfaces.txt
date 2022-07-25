@@ -1,1 +1,0 @@
-[Error(RecursiveDefinition { message: "Interface cannot implement itself", definition: "NamedEntity" })]

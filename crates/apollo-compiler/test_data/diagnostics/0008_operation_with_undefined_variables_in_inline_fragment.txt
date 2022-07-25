@@ -1,0 +1,16 @@
+[
+    UndefinedDefinition(
+        UndefinedDefinition {
+            ty: "value",
+            src: "query ExampleQuery {\n  topProducts {\n    name\n  }\n  ... on Product {\n      price(setPrice: $value)\n  }\n}\n\ntype Query {\n  topProducts(first: Int): Product,\n}\n\ntype Product {\n  name: String\n  price(setPrice: Int): Int\n}",
+            definition: SourceSpan {
+                offset: SourceOffset(
+                    91,
+                ),
+                length: SourceOffset(
+                    6,
+                ),
+            },
+        },
+    ),
+]

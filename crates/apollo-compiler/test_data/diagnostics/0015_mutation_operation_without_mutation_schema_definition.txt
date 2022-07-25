@@ -1,0 +1,35 @@
+[
+    UnsupportedOperation(
+        UnsupportedOperation {
+            ty: "Mutation",
+            src: "mutation adoptAPetMutation {\n  addPet {\n    owner {\n      name\n    }\n  }\n}\n\ntype Query {\n  name: String,\n  age: Int\n}",
+            operation: SourceSpan {
+                offset: SourceOffset(
+                    0,
+                ),
+                length: SourceOffset(
+                    76,
+                ),
+            },
+            schema: None,
+            help: Some(
+                "consider defining a `mutation` root operation type in your schema",
+            ),
+        },
+    ),
+    UndefinedField(
+        UndefinedField {
+            field: "addPet",
+            src: "mutation adoptAPetMutation {\n  addPet {\n    owner {\n      name\n    }\n  }\n}\n\ntype Query {\n  name: String,\n  age: Int\n}",
+            definition: SourceSpan {
+                offset: SourceOffset(
+                    31,
+                ),
+                length: SourceOffset(
+                    42,
+                ),
+            },
+            help: "`addPet` is not defined on the current Mutation root operation type.",
+        },
+    ),
+]

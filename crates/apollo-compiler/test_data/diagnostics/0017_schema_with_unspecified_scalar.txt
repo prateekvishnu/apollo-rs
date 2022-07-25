@@ -1,0 +1,15 @@
+[
+    ScalarSpecificationURL(
+        ScalarSpecificationURL {
+            src: "type Query {\n  website: URL\n}\n\nscalar URL",
+            scalar: SourceSpan {
+                offset: SourceOffset(
+                    31,
+                ),
+                length: SourceOffset(
+                    10,
+                ),
+            },
+        },
+    ),
+]

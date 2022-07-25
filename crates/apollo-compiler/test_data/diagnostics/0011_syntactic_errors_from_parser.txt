@@ -1,0 +1,16 @@
+[
+    SyntaxError(
+        SyntaxError {
+            message: "expected at least one Selection in Selection Set",
+            src: "query getName {}\n\nfragment fragmentOne on Product {\n    name\n    birthday\n}\n\ntype Query {\n  topProducts(first: Int): Product,\n}\n\ntype Product {\n  name: String\n}",
+            span: SourceSpan {
+                offset: SourceOffset(
+                    15,
+                ),
+                length: SourceOffset(
+                    1,
+                ),
+            },
+        },
+    ),
+]

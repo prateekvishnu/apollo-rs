@@ -1,0 +1,28 @@
+[
+    UniqueDefinition(
+        UniqueDefinition {
+            name: "customPetQuery",
+            ty: "root operation type definition",
+            src: "schema {\n  query: customPetQuery,\n  subscription: customPetQuery\n}\n\ntype customPetQuery {\n  name: String,\n  age: Int\n}",
+            original_definition: SourceSpan {
+                offset: SourceOffset(
+                    11,
+                ),
+                length: SourceOffset(
+                    25,
+                ),
+            },
+            redefined_definition: SourceSpan {
+                offset: SourceOffset(
+                    36,
+                ),
+                length: SourceOffset(
+                    29,
+                ),
+            },
+            help: Some(
+                "`customPetQuery` must only be defined once in this document.",
+            ),
+        },
+    ),
+]

@@ -1,0 +1,17 @@
+[
+    RecursiveDefinition(
+        RecursiveDefinition {
+            src: "type Query {\n  id: ID!\n  field(arg: Int @invalidExample): String\n}\n\ndirective @invalidExample(arg: String @invalidExample) on ARGUMENT_DEFINITION",
+            definition: SourceSpan {
+                offset: SourceOffset(
+                    106,
+                ),
+                length: SourceOffset(
+                    15,
+                ),
+            },
+            definition_label: "recursive directive definition",
+            message: "invalidExample directive definition cannot reference itself",
+        },
+    ),
+]

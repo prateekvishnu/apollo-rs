@@ -1,0 +1,15 @@
+[
+    BuiltInScalarDefinition(
+        BuiltInScalarDefinition {
+            src: "type Query {\n  amount: Int\n}\n\nscalar Int",
+            scalar: SourceSpan {
+                offset: SourceOffset(
+                    30,
+                ),
+                length: SourceOffset(
+                    10,
+                ),
+            },
+        },
+    ),
+]

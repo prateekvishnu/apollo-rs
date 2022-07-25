@@ -1,0 +1,28 @@
+[
+    UniqueDefinition(
+        UniqueDefinition {
+            name: "Point2D",
+            ty: "input object",
+            src: "type Query {\n  website: URL,\n  amount: Int\n}\n\nscalar URL @specifiedBy(url: \"https://tools.ietf.org/html/rfc3986\")\n\ninput Point2D {\n  x: Float\n  y: Float\n}\n\ninput Point2D {\n  x: Float\n  y: Float\n}",
+            original_definition: SourceSpan {
+                offset: SourceOffset(
+                    115,
+                ),
+                length: SourceOffset(
+                    41,
+                ),
+            },
+            redefined_definition: SourceSpan {
+                offset: SourceOffset(
+                    156,
+                ),
+                length: SourceOffset(
+                    39,
+                ),
+            },
+            help: Some(
+                "`Point2D` must only be defined once in this document.",
+            ),
+        },
+    ),
+]

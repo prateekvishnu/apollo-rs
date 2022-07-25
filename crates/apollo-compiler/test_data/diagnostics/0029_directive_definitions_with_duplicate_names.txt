@@ -1,0 +1,28 @@
+[
+    UniqueDefinition(
+        UniqueDefinition {
+            name: "foo",
+            ty: "directive",
+            src: "schema @foo {\n    query: Query\n}\n\ntype Query {\n    id: ID!\n    field: String\n}\n\ndirective @foo on SCHEMA\ndirective @foo on SCHEMA",
+            original_definition: SourceSpan {
+                offset: SourceOffset(
+                    80,
+                ),
+                length: SourceOffset(
+                    25,
+                ),
+            },
+            redefined_definition: SourceSpan {
+                offset: SourceOffset(
+                    105,
+                ),
+                length: SourceOffset(
+                    24,
+                ),
+            },
+            help: Some(
+                "`foo` must only be defined once in this document.",
+            ),
+        },
+    ),
+]

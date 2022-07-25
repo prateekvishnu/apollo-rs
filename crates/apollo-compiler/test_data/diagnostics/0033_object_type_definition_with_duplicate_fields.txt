@@ -1,0 +1,27 @@
+[
+    UniqueField(
+        UniqueField {
+            field: "name",
+            src: "type Query {\n  name: String\n  name: String\n}\n",
+            original_field: SourceSpan {
+                offset: SourceOffset(
+                    15,
+                ),
+                length: SourceOffset(
+                    15,
+                ),
+            },
+            redefined_field: SourceSpan {
+                offset: SourceOffset(
+                    30,
+                ),
+                length: SourceOffset(
+                    13,
+                ),
+            },
+            help: Some(
+                "`name` field must only be defined once in this object type definition.",
+            ),
+        },
+    ),
+]
